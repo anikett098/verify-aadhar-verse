@@ -44,7 +44,7 @@ const tasks: VerificationTask[] = [
   }
 ];
 
-// Generate random tasks for verification
+// Generate random tasks for verification - making sure tasks are different
 export const generateRandomTasks = (count: number = 3): VerificationTask[] => {
   // Shuffle the array
   const shuffled = [...tasks].sort(() => 0.5 - Math.random());
@@ -56,11 +56,34 @@ export const generateRandomTasks = (count: number = 3): VerificationTask[] => {
 // Mock validation function - in a real app this would use AI to validate the face movements
 export const mockValidateTask = (taskId: string): Promise<boolean> => {
   return new Promise((resolve) => {
-    // Simulate processing time
+    // Simulate processing time with variable duration for more realism
+    const processingTime = 1000 + Math.random() * 1000;
+    
     setTimeout(() => {
       // 90% success rate for demo purposes
       const success = Math.random() < 0.9;
+      console.log(`Task ${taskId} validation result: ${success ? 'Success' : 'Failed'}`);
       resolve(success);
-    }, 1500);
+    }, processingTime);
   });
+};
+
+// Function to capture an image from video element
+export const captureImageFromVideo = (videoElement: HTMLVideoElement): string | null => {
+  if (!videoElement) return null;
+  
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    
+    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg');
+  } catch (error) {
+    console.error('Error capturing image:', error);
+    return null;
+  }
 };

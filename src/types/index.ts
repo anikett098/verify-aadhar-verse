@@ -24,4 +24,6 @@ export type VerificationResult = {
   taskId: string;
   completed: boolean;
   timestamp: number;
+  capturedImage?: string; // Add support for storing captured image
+  attempts?: number; // Track number of attempts
 };

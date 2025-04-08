@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,16 +14,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "@/components/ui/use-toast";
 
-// Define form validation schema
 const formSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
-  dob: z.string().refine((val) => {
-    const date = new Date(val);
-    const today = new Date();
-    return date < today;
-  }, "Date of birth must be in the past"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  dob: z.string().min(1, "Date of birth is required"),
   gender: z.string().min(1, "Please select a gender"),
-  mobile: z.string().min(10, "Mobile number must be at least 10 digits"),
+  mobile: z.string().length(10, "Mobile number must be 10 digits"),
   email: z.string().email("Please enter a valid email"),
   address: z.string().min(5, "Address must be at least 5 characters"),
   city: z.string().min(2, "City must be at least 2 characters"),
@@ -37,7 +31,8 @@ const formSchema = z.object({
   }, {
     message: "Aadhar number must be 12 digits",
   }).superRefine((val, ctx) => {
-    if (ctx.parent.isNewApplication === false && (!val || val.length !== 12)) {
+    const formData = ctx.path[0] === "existingAadhar" ? ctx.input : {};
+    if (formData.isNewApplication === false && (!val || val.length !== 12)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Aadhar number must be 12 digits for updates",
@@ -71,16 +66,11 @@ const CreateUpdateAadhar = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Store form data in session storage to access it later
     sessionStorage.setItem("aadharFormData", JSON.stringify(values));
-    
-    // Show a success message
     toast({
       title: "Form submitted successfully",
       description: "Proceeding to verification...",
     });
-    
-    // Navigate to verification page
     navigate("/verification");
   };
 
