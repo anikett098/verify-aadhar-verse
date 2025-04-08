@@ -1,5 +1,5 @@
 
-import { VerificationTask } from "@/types";
+import { VerificationTask, VerificationResult } from "@/types";
 
 const tasks: VerificationTask[] = [
   {
@@ -86,4 +86,16 @@ export const captureImageFromVideo = (videoElement: HTMLVideoElement): string | 
     console.error('Error capturing image:', error);
     return null;
   }
+};
+
+// Track verification results
+export const storeVerificationResult = (result: VerificationResult): void => {
+  // In a real app, this would store data in a database
+  // For demo purposes, we're just logging it
+  console.log('Storing verification result:', result);
+  
+  // Could use localStorage to persist between page refreshes
+  const existingResults = JSON.parse(localStorage.getItem('verificationResults') || '[]');
+  existingResults.push(result);
+  localStorage.setItem('verificationResults', JSON.stringify(existingResults));
 };

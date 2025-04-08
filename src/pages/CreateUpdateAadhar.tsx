@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,13 +32,19 @@ const formSchema = z.object({
   }, {
     message: "Aadhar number must be 12 digits",
   }).superRefine((val, ctx) => {
-    const formData = ctx.path[0] === "existingAadhar" ? ctx.input : {};
-    if (formData.isNewApplication === false && (!val || val.length !== 12)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Aadhar number must be 12 digits for updates",
-      });
-      return false;
+    // Fixed: don't access ctx.input, instead use the form values directly
+    if (ctx.path.length > 0) {
+      const isNewApplication = ctx.path[0] === "isNewApplication" 
+        ? val 
+        : ctx.data.isNewApplication;
+        
+      if (isNewApplication === false && (!val || val.length !== 12)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Aadhar number must be 12 digits for updates",
+        });
+        return false;
+      }
     }
     return true;
   }),
