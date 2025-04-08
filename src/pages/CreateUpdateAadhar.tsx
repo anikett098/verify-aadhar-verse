@@ -31,12 +31,21 @@ const formSchema = z.object({
   state: z.string().min(2, "Please select a state"),
   pincode: z.string().length(6, "Pincode must be 6 digits"),
   isNewApplication: z.boolean(),
-  existingAadhar: z.string().optional().refine((val, ctx) => {
-    if (ctx.data.isNewApplication === false && (!val || val.length !== 12)) {
+  existingAadhar: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return val.length === 12 || val.length === 0;
+  }, {
+    message: "Aadhar number must be 12 digits",
+  }).superRefine((val, ctx) => {
+    if (ctx.parent.isNewApplication === false && (!val || val.length !== 12)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Aadhar number must be 12 digits for updates",
+      });
       return false;
     }
     return true;
-  }, "Aadhar number must be 12 digits"),
+  }),
 });
 
 const CreateUpdateAadhar = () => {
