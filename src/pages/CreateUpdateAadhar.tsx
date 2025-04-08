@@ -4,49 +4,63 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { UserFormData } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { toast } from "@/components/ui/use-toast";
 
+// Form validation schema
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  dob: z.string().min(1, "Date of birth is required"),
-  gender: z.string().min(1, "Please select a gender"),
-  mobile: z.string().length(10, "Mobile number must be 10 digits"),
-  email: z.string().email("Please enter a valid email"),
-  address: z.string().min(5, "Address must be at least 5 characters"),
-  city: z.string().min(2, "City must be at least 2 characters"),
-  state: z.string().min(2, "Please select a state"),
-  pincode: z.string().length(6, "Pincode must be 6 digits"),
-  isNewApplication: z.boolean(),
-  existingAadhar: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return val.length === 12 || val.length === 0;
+  name: z.string().min(3, {
+    message: "Name must be at least 3 characters",
+  }),
+  dob: z.string().refine((val) => {
+    return Date.parse(val) < Date.now();
   }, {
-    message: "Aadhar number must be 12 digits",
-  }).superRefine((val, ctx) => {
-    // Fixed: don't access ctx.input, instead use the form values directly
-    if (ctx.path.length > 0) {
-      const isNewApplication = ctx.path[0] === "isNewApplication" 
-        ? val 
-        : ctx.data.isNewApplication;
-        
-      if (isNewApplication === false && (!val || val.length !== 12)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Aadhar number must be 12 digits for updates",
-        });
-        return false;
-      }
+    message: "Date of birth must be in the past",
+  }),
+  gender: z.enum(["male", "female", "other"]),
+  mobile: z.string().min(10).max(10, {
+    message: "Mobile number must be 10 digits",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address",
+  }),
+  address: z.string().min(5, {
+    message: "Address must be at least 5 characters",
+  }),
+  city: z.string().min(2, {
+    message: "City must be at least 2 characters",
+  }),
+  state: z.string().min(2, {
+    message: "State must be at least 2 characters",
+  }),
+  pincode: z.string().min(6).max(6, {
+    message: "Pincode must be 6 digits",
+  }),
+  isNewApplication: z.boolean(),
+  existingAadhar: z.string().optional().refine((val, ctx) => {
+    // Check if it's an update application (not a new one)
+    if (ctx.parent.isNewApplication === false) {
+      // Ensure Aadhar number is provided and valid for updates
+      return val && val.length === 12;
     }
+    // For new applications, this field is optional
     return true;
+  }, {
+    message: "Aadhar number must be 12 digits for updates",
   }),
 });
 
