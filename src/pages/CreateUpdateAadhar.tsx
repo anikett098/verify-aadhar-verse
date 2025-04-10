@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
@@ -51,17 +52,20 @@ const formSchema = z.object({
     message: "Pincode must be 6 digits",
   }),
   isNewApplication: z.boolean(),
-  existingAadhar: z.string().optional().refine((val, ctx) => {
-    // Check if it's an update application (not a new one)
-    if (ctx.parent.isNewApplication === false) {
-      // Ensure Aadhar number is provided and valid for updates
-      return val && val.length === 12;
+  existingAadhar: z.string().optional().refine(
+    (val, ctx) => {
+      // Check if it's an update application (not a new one)
+      if (ctx.parent.isNewApplication === false) {
+        // Ensure Aadhar number is provided and valid for updates
+        return val !== undefined && val.length === 12;
+      }
+      // For new applications, this field is optional
+      return true;
+    }, 
+    {
+      message: "Aadhar number must be 12 digits for updates",
     }
-    // For new applications, this field is optional
-    return true;
-  }, {
-    message: "Aadhar number must be 12 digits for updates",
-  }),
+  ),
 });
 
 const CreateUpdateAadhar = () => {
@@ -74,7 +78,7 @@ const CreateUpdateAadhar = () => {
     defaultValues: {
       name: "",
       dob: "",
-      gender: "",
+      gender: "male", // Set a default gender to fix the type error
       mobile: "",
       email: "",
       address: "",
